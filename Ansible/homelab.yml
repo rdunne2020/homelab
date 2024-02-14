@@ -1,0 +1,23 @@
+---
+# TODO: This needs to grow as I continue with the homelab, more tasks need to be automated
+# Especially backup tasks or recreation tasks
+
+- name: Homelab Configurator
+  hosts: all
+  remote_user: root
+  collections:
+    - containers.podman.podman_container
+    - containers.podman.podman_pod
+  roles:
+    - role: hermes_book
+      host: hermes
+      become: true
+      when: "'hermes' not in exclude_hosts"
+    - role: poseidon_book
+      host: poseidon
+      become: true
+      when: "'poseidon' not in exclude_hosts"
+    - role: neptune_book
+      host: neptune
+      become: true
+      when: "'neptune' not in exclude_hosts"

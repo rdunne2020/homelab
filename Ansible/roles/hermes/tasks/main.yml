@@ -1,0 +1,21 @@
+---
+# This machine needs to be running debian
+- name: Verify cockpit is installed
+  ansible.builtin.apt:
+    name: cockpit
+    state: present
+    install_recommends: false
+
+# TODO Install plugins for cockpit from .deb files
+
+- name: Update the disallowed-users for cockpit to allow root
+  ansible.builtin.lineinfile:
+    path: /etc/cockpit/disallowed-users
+    regexp: '^root'
+    line: '#root'
+
+
+- name: Start cockpit
+  ansible.builtin.systemd_service:
+    name: cockpit
+    state: started to allow root

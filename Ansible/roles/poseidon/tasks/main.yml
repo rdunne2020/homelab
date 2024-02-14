@@ -1,0 +1,47 @@
+---
+# Add Repos for Jellyfin and Audiobookshelf
+- name: Add RPM Fusion Free Repo Key
+  ansible.builtin.rpm_key:
+    key: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-2020"
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: Add RPM Fusion Free Repo
+  ansible.builtin.dnf:
+    name: https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ansible_distribution_major_version}}.noarch.rpm
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: Add RPM Fustion NonFree Repo Key
+  ansible.builtin.rpm_key:
+    key: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020"
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: Add RPM Fusion Free Repo
+  ansible.builtin.dnf:
+    name: https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ansible_distribution_major_version}}.noarch.rpm
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: Add Audiobookshelf Repo
+  ansible.builtin.dnf:
+    name: https://github.com/lkiesow/audiobookshelf-rpm/raw/el9/audiobookshelf-repository-1-1.el9.noarch.rpm
+
+- name: Start/Enable Jellyfin
+  ansible.builtin.systemd_service:
+    name: jellyfin
+    state: started
+    enabled: true
+
+- name: Start Audiobookshelf
+  ansible.builtin.systemd_service:
+    name: audiobookshelf
+    state: started
+
+# I don't have a repo setup for jellyseerrs rpm yet, so just assume it's installed, don't fail if not
+- name: Start jellyseerr
+  ignore_errors: true
+  ansible.builtin.systemd_service:
+    name: jellyseerr
+    state: started

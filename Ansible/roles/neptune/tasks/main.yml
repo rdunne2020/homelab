@@ -1,0 +1,138 @@
+---
+- name: Create pod for Arr Stack
+  containers.podman.podman_pod:
+    name: arr_pod
+    state: started
+    ports:
+      - "9096:9096"   # Qbit
+      - "6881:6881"   # Fwd Port for VPN, may not be necessary
+      - "10096:9696"  # Prowlarr
+      - "11096:8989"  # Sonarr
+      - "12096:7878"  # Radarr
+      - "50080:50080" # Sniffer HTTP Port
+      - "50443:50443" # Sniffer HTTPS Port
+
+- name: Create VPN container
+  containers.podman.podman_container:
+    name: gluetun
+    image: "qmcgaw/gluetun"
+    pod: "arr_pod"
+    detach: true
+    interactive: false
+    rm: false
+    privileged: true
+    volume:
+      - "/podman/vpn/wg.conf:/gluetun/wireguard/wg0.conf:ro,Z"
+    cap_add:
+      - "NET_ADMIN"
+    env:
+      VPN_SERVICE_PROVIDER: "custom"
+      VPN_TYPE: "wireguard"
+      VPN_PORT_FORWARDING_PROVIDER: "protonvpn"
+    state: started
+
+- name: Create qBittorrent container
+  containers.podman.podman_container:
+    name: qbittorrent
+    image: "lscr.io/linuxserver/qbittorrent:latest"
+    pod: "arr_pod"
+    detach: true
+    interactive: false
+    rm: false
+    privileged: true
+    volume:
+      - "/podman/qbit/config:/config:Z"
+      - "/storage/qbit/:/downloads:Z"
+    env:
+      PUID: 1000
+      PGID: 1000
+      WEBUI_PORT: 9096
+    state: started
+
+- name: Create prowlarr container
+  containers.podman.podman_container:
+    name: prowlarr
+    image: "ghcr.io/hotio/prowlarr"
+    pod: "arr_pod"
+    detach: true
+    interactive: false
+    rm: false
+    privileged: false
+    volume:
+      - "/podman/prowlarr/config:/config:Z"
+    env:
+      PUID: 1000
+      PGID: 1000
+    state: started
+
+- name: Create sonarr container
+  containers.podman.podman_container:
+    name: sonarr
+    image: "ghcr.io/hotio/sonarr"
+    pod: "arr_pod"
+    detach: true
+    interactive: false
+    rm: false
+    privileged: false
+    volume:
+      - "/podman/sonarr/config:/config:Z"
+      - "/podman/sonarr/data:/data:Z"
+      - "/storage/qbit:/downloads:Z"
+      - "/media/TV/:/TV:rw"
+    env:
+      PUID: 1000
+      PGID: 1000
+    state: started
+
+- name: Create radarr container
+  containers.podman.podman_container:
+    name: radarr
+    image: "ghcr.io/hotio/radarr"
+    pod: "arr_pod"
+    detach: true
+    interactive: false
+    rm: false
+    privileged: false
+    volume:
+      - "/podman/radarr/config:/config:Z"
+      - "/podman/radarr/data:/data:Z"
+      - "/storage/qbit:/downloads:Z"
+      - "/media/Movies/:/Movies:rw"
+    env:
+      PUID: 1000
+      PGID: 1000
+    state: started
+
+- name: Create sniffer container
+  containers.podman.podman_container:
+    name: sniffer
+    image: "wbitt/network-multitool"
+    pod: "arr_pod"
+    detach: true
+    rm: false
+    interactive: false
+    privileged: false
+    cap_add:
+      - "NET_RAW"
+    env:
+      HTTP_PORT: 50080
+      HTTPS_PORT: 50443
+    state: present
+
+- name: Create homarr container
+  containers.podman.podman_container:
+    name: homarr
+    image: "ghcr.io/ajnart/homarr:latest"
+    detach: true
+    rm: false
+    interactive: false
+    privileged: false
+    ports:
+      - "7575:7575"
+    volume:
+      - "/podman/homarr/configs/:/app/data/configs:Z"
+      - "/podman/homarr/data/:/data:Z"
+      - "/podman/homarr/icons/:/app/public/icons:Z"
+    env:
+      PUID: 1000
+      PGID: 1000
