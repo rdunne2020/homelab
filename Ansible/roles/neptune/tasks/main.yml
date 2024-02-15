@@ -103,6 +103,7 @@
       PGID: 1000
     state: started
 
+# TODO Setup the natpmpc nohup
 - name: Create sniffer container
   containers.podman.podman_container:
     name: sniffer
@@ -136,3 +137,4 @@
     env:
       PUID: 1000
       PGID: 1000
+    state: started

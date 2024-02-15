@@ -4,7 +4,6 @@
 
 - name: Homelab Configurator
   hosts: all
-  remote_user: root
   collections:
     - containers.podman.podman_container
     - containers.podman.podman_pod
@@ -12,12 +11,20 @@
     - role: hermes_book
       host: hermes
       become: true
-      when: "'hermes' not in exclude_hosts"
+      become_user: root
+      ansible_become_method: su
+      when: "'hermes' not in exclude_hosts and inventory_hostname in groups[\"storage\"]"
+
     - role: poseidon_book
       host: poseidon
       become: true
-      when: "'poseidon' not in exclude_hosts"
+      become_user: root
+      ansible_become_method: su
+      when: "'poseidon' not in exclude_hosts and inventory_hostname in groups[\"media\"]"
+
     - role: neptune_book
       host: neptune
       become: true
-      when: "'neptune' not in exclude_hosts"
+      become_user: root
+      ansible_become_method: su
+      when: "'neptune' not in exclude_hosts and inventory_hostname in groups[\"util\"]"
