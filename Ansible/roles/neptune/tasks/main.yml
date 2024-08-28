@@ -5,7 +5,7 @@
     state: started
     ports:
       - "9096:9096"   # Qbit
-      - "6881:6881"   # Fwd Port for VPN, may not be necessary
+      - "55292:55292"   # Fwd Port for VPN, may not be necessary
       - "10096:9696"  # Prowlarr
       - "11096:8989"  # Sonarr
       - "12096:7878"  # Radarr
@@ -29,6 +29,7 @@
       VPN_SERVICE_PROVIDER: "custom"
       VPN_TYPE: "wireguard"
       VPN_PORT_FORWARDING_PROVIDER: "protonvpn"
+      VPN_PORT_FORWARDING: "on"
     state: started
 
 - name: Create qBittorrent container
