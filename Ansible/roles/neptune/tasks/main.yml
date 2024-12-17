@@ -5,7 +5,8 @@
     state: started
     ports:
       - "9096:9096"   # Qbit
-      - "55292:55292"   # Fwd Port for VPN, may not be necessary
+      # - "55292:55292"   # Fwd Port for VPN, may not be necessary
+      - "8000:8000"   # Gluetun HTTP Server
       - "10096:9696"  # Prowlarr
       - "11096:8989"  # Sonarr
       - "12096:7878"  # Radarr
@@ -15,7 +16,7 @@
 - name: Create VPN container
   containers.podman.podman_container:
     name: gluetun
-    image: "qmcgaw/gluetun"
+    image: "qmcgaw/gluetun:latest"
     pod: "arr_pod"
     detach: true
     interactive: false
@@ -119,7 +120,7 @@
     env:
       HTTP_PORT: 50080
       HTTPS_PORT: 50443
-    state: present
+    state: started
 
 - name: Create homarr container
   containers.podman.podman_container:
