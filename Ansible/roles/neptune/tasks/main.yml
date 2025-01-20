@@ -23,7 +23,7 @@
     rm: false
     privileged: true
     volume:
-      - "/podman/vpn/wg.conf:/gluetun/wireguard/wg0.conf:ro,Z"
+      - "/podman/vpn/wg.conf:/gluetun/wireguard/wg0.conf:ro,z"
     cap_add:
       - "NET_ADMIN"
     env:
@@ -43,8 +43,8 @@
     rm: false
     privileged: true
     volume:
-      - "/podman/qbit/config:/config:Z"
-      - "/storage/qbit/:/downloads:Z"
+      - "/podman/qbit/config:/config:z"
+      - "/storage/qbit/:/downloads:z"
     env:
       PUID: 1000
       PGID: 1000
@@ -61,7 +61,7 @@
     rm: false
     privileged: false
     volume:
-      - "/podman/prowlarr/config:/config:Z"
+      - "/podman/prowlarr/config:/config:z"
     env:
       PUID: 1000
       PGID: 1000
@@ -77,9 +77,9 @@
     rm: false
     privileged: false
     volume:
-      - "/podman/sonarr/config:/config:Z"
-      - "/podman/sonarr/data:/data:Z"
-      - "/storage/qbit:/downloads:Z"
+      - "/podman/sonarr/config:/config:z"
+      - "/podman/sonarr/data:/data:z"
+      - "/storage/qbit:/downloads:z"
       - "/media/TV/:/TV:rw"
     env:
       PUID: 1000
@@ -96,9 +96,9 @@
     rm: false
     privileged: false
     volume:
-      - "/podman/radarr/config:/config:Z"
-      - "/podman/radarr/data:/data:Z"
-      - "/storage/qbit:/downloads:Z"
+      - "/podman/radarr/config:/config:z"
+      - "/podman/radarr/data:/data:z"
+      - "/storage/qbit:/downloads:z"
       - "/media/Movies/:/Movies:rw"
     env:
       PUID: 1000
@@ -133,9 +133,9 @@
     ports:
       - "7575:7575"
     volume:
-      - "/podman/homarr/configs/:/app/data/configs:Z"
-      - "/podman/homarr/data/:/data:Z"
-      - "/podman/homarr/icons/:/app/public/icons:Z"
+      - "/podman/homarr/configs/:/app/data/configs:z"
+      - "/podman/homarr/data/:/data:z"
+      - "/podman/homarr/icons/:/app/public/icons:z"
     env:
       PUID: 1000
       PGID: 1000
