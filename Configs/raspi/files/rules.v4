@@ -1,0 +1,11 @@
+# /etc/iptables/rules.v4
+# Generated on a separate raspberry pi and stored here
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A PREROUTING -p udp -m udp --dport 53 -j REDIRECT --to-ports 42053
+-A PREROUTING -p tcp -m tcp --dport 53 -j REDIRECT --to-ports 42053
+-A PREROUTING -d %RASPBERRY_PI_IP%/32 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 22443
+COMMIT
