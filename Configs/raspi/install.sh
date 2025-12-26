@@ -41,5 +41,8 @@ sed "s#%RASPBERRY_PI_IP%#${pi_ip}#" ./files/rules.v4 > /etc/iptables/rules.v4
 iptables-restore /etc/iptables/rules.v4
 [[ "$VERBOSE" = true ]] && iptables -t nat -L -v -n --line-numbers
 sleep 1
+echo "nft.conf ---> /etc/nft.conf"
+cp ./files/nft.conf /etc/nft.conf
+nft -f /etc/nft.conf
 echo "Complete"
 
