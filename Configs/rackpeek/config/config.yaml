@@ -1,0 +1,195 @@
+version: 3
+resources:
+  - kind: Router
+    model: Unifi Dream Router 7
+    managed: true
+    poe: true
+    ports:
+      - type: sfp
+        speed: 10
+        count: 1
+      - type: rj45
+        speed: 2.5
+        count: 3
+      - type: rj45
+        speed: 1
+        count: 1
+    name: Gracchus
+  - kind: Switch
+    model: Ubiquiti Switch Flex
+    ports:
+      - type: rj45
+        speed: 2.5
+        count: 5
+    name: USW Flex 001
+  - kind: Server
+    ram:
+      size: 32
+      mts: 2400
+    cpus:
+      - model: Intel i7 6700K
+        cores: 4
+        threads: 8
+    drives:
+      - type: hdd
+        size: 10000
+      - type: hdd
+        size: 10000
+      - type: ssd
+        size: 512
+      - type: ssd
+        size: 128
+      - type: ssd
+        size: 128
+    gpus:
+      - model: Nvidia GeForce 1660
+    ports:
+      - type: rj45
+        speed: 1
+        count: 1
+    name: Ryder
+    tags:
+      - proxmox
+  - kind: Server
+    ram:
+      size: 16
+    cpus:
+      - model: Intel i5 7500-T
+        cores: 4
+        threads: 4
+    drives:
+      - type: ssd
+        size: 256
+    ports:
+      - type: rj45
+        speed: 1
+        count: 1
+    name: Oreo
+    tags:
+      - proxmox
+  - kind: System
+    type: hypervisor
+    os: proxmox 9
+    cores: 4
+    ram: 32
+    ip: 10.69.10.200
+    name: ryder-proxmox
+    runsOn:
+      - Ryder
+  - kind: System
+    type: hypervisor
+    os: proxmox 9
+    cores: 4
+    ram: 16
+    ip: 10.69.10.220
+    drives:
+      - type: ssd
+        size: 256
+    name: oreo-proxmox
+    runsOn:
+      - Oreo
+  - kind: System
+    type: container
+    os: Debian 13
+    cores: 2
+    ram: 4
+    ip: 10.69.10.201
+    drives:
+      - type: hdd
+        size: 500
+      - type: ssd
+        size: 100
+    name: hermes
+    tags:
+      - smb
+    runsOn:
+      - ryder-proxmox
+  - kind: System
+    type: container
+    os: Fedora 43
+    cores: 4
+    ram: 4
+    ip: 10.69.10.202
+    drives:
+      - type: hdd
+        size: 6000
+      - type: ssd
+        size: 100
+    name: poseidon
+    tags:
+      - gpu
+    runsOn:
+      - ryder-proxmox
+  - kind: System
+    type: container
+    os: Debian 12
+    cores: 4
+    ram: 8
+    ip: 10.69.10.203
+    drives:
+      - type: hdd
+        size: 500
+      - type: ssd
+        size: 50
+    name: aphrodite
+    runsOn:
+      - ryder-proxmox
+  - kind: System
+    type: vm
+    os: Rocky 9
+    cores: 2
+    ram: 4
+    ip: 10.69.10.204
+    drives:
+      - type: ssd
+        size: 60
+      - type: ssd
+        size: 200
+    name: neptune
+    runsOn:
+      - ryder-proxmox
+  - kind: System
+    type: vm
+    os: Debian 13
+    cores: 2
+    ram: 4
+    ip: 10.69.10.221
+    name: saturn
+    runsOn:
+      - Oreo
+  - kind: Service
+    network:
+      ip: 10.69.10.221
+      port: 81
+      protocol: http/s
+    name: Nginx Proxy Manager
+    notes: 81 is the admin port. It opens 80/443 otherwise
+    runsOn:
+      - saturn
+  - kind: Service
+    network:
+      ip: 10.69.10.221
+      port: 3000
+    name: Adguard Home
+    notes: 3000 is the dashboard port
+    runsOn:
+      - saturn
+  - kind: Service
+    network:
+      ip: 10.69.10.221
+      port: 1411
+      protocol: https
+      url: https://auth.chinacat.cc
+    name: PocketID
+    runsOn:
+      - saturn
+  - kind: System
+    type: vm
+    os: Rocky Linux 10.1
+    cores: 4
+    ram: 4
+    ip: 10.69.10.222
+    name: minerva
+    runsOn:
+      - Oreo
+connections: []
