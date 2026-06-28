@@ -1,0 +1,192 @@
+---
+- name: Validate supported node_exporter architecture
+  ansible.builtin.assert:
+    that:
+      - ansible_system == "Linux"
+      - ansible_architecture in node_exporter_arch_map
+    fail_msg: "node_exporter role supports Linux on: {{ node_exporter_arch_map.keys() | list | join(', ') }}"
+
+- name: Set node_exporter release facts
+  ansible.builtin.set_fact:
+    node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] }}"
+    node_exporter_release_name: "node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch_map[ansible_architecture] }}"
+    node_exporter_release_base_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}"
+
+- name: Create node_exporter group
+  ansible.builtin.group:
+    name: "{{ node_exporter_group }}"
+    system: true
+    state: present
+
+- name: Create node_exporter user
+  ansible.builtin.user:
+    name: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+    home: /nonexistent
+    state: present
+
+- name: Ensure node_exporter install directory exists
+  ansible.builtin.file:
+    path: "{{ node_exporter_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create temporary download directory
+  ansible.builtin.file:
+    path: "/tmp/{{ node_exporter_release_name }}"
+    state: directory
+    mode: "0755"
+
+- name: Download node_exporter archive
+  ansible.builtin.get_url:
+    url: "{{ node_exporter_release_base_url }}/{{ node_exporter_release_name }}.tar.gz"
+    dest: "/tmp/{{ node_exporter_release_name }}.tar.gz"
+    mode: "0644"
+    checksum: "sha256:{{ node_exporter_release_base_url }}/sha256sums.txt"
+
+- name: Extract node_exporter archive
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ node_exporter_release_name }}.tar.gz"
+    dest: "/tmp/{{ node_exporter_release_name }}"
+    remote_src: true
+    extra_opts:
+      - --strip-components=1
+
+- name: Install node_exporter binary
+  ansible.builtin.copy:
+    src: "/tmp/{{ node_exporter_release_name }}/node_exporter"
+    dest: "{{ node_exporter_install_dir }}/node_exporter"
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+  notify: Restart node_exporter
+
+- name: Install node_exporter systemd unit
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart node_exporter
+
+- name: Enable and start node_exporter
+  ansible.builtin.systemd_service:
+    name: node_exporter
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Check node_exporter metrics endpoint
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ node_exporter_web_listen_address.split(':')[-1] }}/metrics"
+    status_code: 200
+    return_content: false
+
+- name: Remove temporary node_exporter files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/{{ node_exporter_release_name }}"
+    - "/tmp/{{ node_exporter_release_name }}.tar.gz"
+
+- name: Install NVIDIA GPU exporter on GPU nodes
+  when: gpu_node_exporter_enabled | bool
+  block:
+    - name: Validate supported gpu_node_exporter architecture
+      ansible.builtin.assert:
+        that:
+          - ansible_system == "Linux"
+          - ansible_architecture in gpu_node_exporter_arch_map
+        fail_msg: "gpu_node_exporter role supports Linux on: {{ gpu_node_exporter_arch_map.keys() | list | join(', ') }}"
+
+    - name: Check NVIDIA driver tools are available
+      ansible.builtin.command: nvidia-smi --query-gpu=name --format=csv,noheader
+      changed_when: false
+
+    - name: Set gpu_node_exporter release facts
+      ansible.builtin.set_fact:
+        gpu_node_exporter_arch: "{{ gpu_node_exporter_arch_map[ansible_architecture] }}"
+        gpu_node_exporter_release_name: "nvidia_gpu_exporter_{{ gpu_node_exporter_version }}_linux_{{ gpu_node_exporter_arch_map[ansible_architecture] }}"
+        gpu_node_exporter_release_base_url: "https://github.com/{{ gpu_node_exporter_repo }}/releases/download/v{{ gpu_node_exporter_version }}"
+
+    - name: Create gpu_node_exporter group
+      ansible.builtin.group:
+        name: "{{ gpu_node_exporter_group }}"
+        system: true
+        state: present
+
+    - name: Create gpu_node_exporter user
+      ansible.builtin.user:
+        name: "{{ gpu_node_exporter_user }}"
+        group: "{{ gpu_node_exporter_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+        home: /nonexistent
+        state: present
+
+    - name: Create temporary gpu_node_exporter download directory
+      ansible.builtin.file:
+        path: "/tmp/{{ gpu_node_exporter_release_name }}"
+        state: directory
+        mode: "0755"
+
+    - name: Download gpu_node_exporter archive
+      ansible.builtin.get_url:
+        url: "{{ gpu_node_exporter_release_base_url }}/{{ gpu_node_exporter_release_name }}.tar.gz"
+        dest: "/tmp/{{ gpu_node_exporter_release_name }}.tar.gz"
+        mode: "0644"
+
+    - name: Extract gpu_node_exporter archive
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ gpu_node_exporter_release_name }}.tar.gz"
+        dest: "/tmp/{{ gpu_node_exporter_release_name }}"
+        remote_src: true
+
+    - name: Install gpu_node_exporter binary
+      ansible.builtin.copy:
+        src: "/tmp/{{ gpu_node_exporter_release_name }}/{{ gpu_node_exporter_binary_name }}"
+        dest: "{{ gpu_node_exporter_install_dir }}/{{ gpu_node_exporter_binary_name }}"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      notify: Restart gpu_node_exporter
+
+    - name: Install gpu_node_exporter systemd unit
+      ansible.builtin.template:
+        src: gpu_node_exporter.service
+        dest: /etc/systemd/system/gpu_node_exporter.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart gpu_node_exporter
+
+    - name: Enable and start gpu_node_exporter
+      ansible.builtin.systemd_service:
+        name: gpu_node_exporter
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Check gpu_node_exporter metrics endpoint
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ gpu_node_exporter_web_listen_address.split(':')[-1] }}/metrics"
+        status_code: 200
+        return_content: false
+
+    - name: Remove temporary gpu_node_exporter files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/{{ gpu_node_exporter_release_name }}"
+        - "/tmp/{{ gpu_node_exporter_release_name }}.tar.gz"

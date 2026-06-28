@@ -12,19 +12,19 @@
       host: hermes
       become: true
       become_user: root
-      ansible_become_method: su
-      when: "'hermes' not in exclude_hosts and inventory_hostname in groups[\"storage\"]"
+      become_method: su
+      when: '"hermes" not in exclude_hosts and inventory_hostname in groups["storage"]'
 
     - role: poseidon
       host: poseidon
       become: true
       become_user: root
-      ansible_become_method: su
-      when: "'poseidon' not in exclude_hosts and inventory_hostname in groups[\"media\"]"
+      become_method: su
+      when: '''poseidon'' not in exclude_hosts and inventory_hostname in groups["media"]'
 
     - role: neptune
       host: neptune
       become: true
       become_user: root
-      ansible_become_method: su
-      when: "'neptune' not in exclude_hosts and inventory_hostname in groups[\"util\"]"
+      become_method: su
+      when: '"neptune" not in exclude_hosts and inventory_hostname in groups["util"]'

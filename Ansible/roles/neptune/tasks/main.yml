@@ -4,12 +4,12 @@
     name: arr_pod
     state: started
     ports:
-      - "9096:9096"   # Qbit
+      - "9096:9096" # Qbit
       # - "55292:55292"   # Fwd Port for VPN, may not be necessary
-      - "8000:8000"   # Gluetun HTTP Server
-      - "10096:9696"  # Prowlarr
-      - "11096:8989"  # Sonarr
-      - "12096:7878"  # Radarr
+      - "8000:8000" # Gluetun HTTP Server
+      - "10096:9696" # Prowlarr
+      - "11096:8989" # Sonarr
+      - "12096:7878" # Radarr
       - "50080:50080" # Sniffer HTTP Port
       - "50443:50443" # Sniffer HTTPS Port
 
@@ -109,7 +109,7 @@
 - name: Create sniffer container
   containers.podman.podman_container:
     name: sniffer
-    image: "wbitt/network-multitool"
+    image: "docker.io/wbitt/network-multitool:latest"
     pod: "arr_pod"
     detach: true
     rm: false
@@ -121,22 +121,21 @@
       HTTP_PORT: 50080
       HTTPS_PORT: 50443
     state: started
-
-- name: Create homarr container
-  containers.podman.podman_container:
-    name: homarr
-    image: "ghcr.io/ajnart/homarr:latest"
-    detach: true
-    rm: false
-    interactive: false
-    privileged: false
-    ports:
-      - "7575:7575"
-    volume:
-      - "/podman/homarr/configs/:/app/data/configs:z"
-      - "/podman/homarr/data/:/data:z"
-      - "/podman/homarr/icons/:/app/public/icons:z"
-    env:
-      PUID: 1000
-      PGID: 1000
-    state: started
+# - name: Create homarr container
+#   containers.podman.podman_container:
+#     name: homarr
+#     image: "ghcr.io/ajnart/homarr:latest"
+#     detach: true
+#     rm: false
+#     interactive: false
+#     privileged: false
+#     ports:
+#       - "7575:7575"
+#     volume:
+#       - "/podman/homarr/configs/:/app/data/configs:z"
+#       - "/podman/homarr/data/:/data:z"
+#       - "/podman/homarr/icons/:/app/public/icons:z"
+#     env:
+#       PUID: 1000
+#       PGID: 1000
+#     state: started

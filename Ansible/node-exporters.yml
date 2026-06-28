@@ -1,0 +1,8 @@
+---
+- name: Install Prometheus node_exporter on homelab nodes
+  hosts: all
+  become: true
+  become_user: root
+  become_method: su
+  roles:
+    - role: node_exporter

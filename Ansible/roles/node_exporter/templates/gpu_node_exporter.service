@@ -1,0 +1,21 @@
+[Unit]
+Description=Nvidia GPU Exporter
+After=network-online.target
+
+[Service]
+Type=simple
+
+User={{ gpu_node_exporter_user }}
+Group={{ gpu_node_exporter_group }}
+
+ExecStart={{ gpu_node_exporter_install_dir }}/{{ gpu_node_exporter_binary_name }} \
+  --web.listen-address={{ gpu_node_exporter_web_listen_address }}{% for flag in gpu_node_exporter_extra_flags %} \
+  {{ flag }}{% endfor %}
+
+SyslogIdentifier={{ gpu_node_exporter_binary_name }}
+
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

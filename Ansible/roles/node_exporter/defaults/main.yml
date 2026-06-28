@@ -1,0 +1,35 @@
+---
+node_exporter_version: "1.11.1"
+node_exporter_web_listen_address: ":9100"
+
+node_exporter_user: node_exporter
+node_exporter_group: node_exporter
+node_exporter_install_dir: /usr/local/bin
+
+node_exporter_enabled_collectors: []
+node_exporter_disabled_collectors: []
+node_exporter_extra_flags: []
+
+node_exporter_arch_map:
+  x86_64: amd64
+  amd64: amd64
+  aarch64: arm64
+  arm64: arm64
+  armv7l: armv7
+  armv6l: armv6
+
+gpu_node_exporter_enabled: "{{ 'gpu' in group_names }}"
+gpu_node_exporter_version: "1.6.0"
+gpu_node_exporter_repo: "utkuozdemir/nvidia_gpu_exporter"
+gpu_node_exporter_user: nvidia_gpu_exporter
+gpu_node_exporter_group: nvidia_gpu_exporter
+gpu_node_exporter_install_dir: /usr/bin
+gpu_node_exporter_binary_name: nvidia_gpu_exporter
+gpu_node_exporter_web_listen_address: ":9835"
+gpu_node_exporter_extra_flags: []
+
+gpu_node_exporter_arch_map:
+  x86_64: amd64
+  amd64: amd64
+  aarch64: arm64
+  arm64: arm64
